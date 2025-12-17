@@ -62,7 +62,54 @@ def validCIDR(cidr):
         return True
     except ValueError:
         return False
+
+def validScanOpts(scan_opts):
+    valid_opts = {
+        "-sS","-sT","-sA","-sW","-sM",
+        "-sU","-sN","-sF","-sX","-sI",
+        "-sY","-sZ","-sO","-b"
+    }
+
+    # Handle -sI with zombie IP separately
+    tokens = scan_opts.split()
+    i = 0
+    while i < len(tokens):
+        if tokens[i] == "-sI":
+            i += 2  # Skip the zombie IP
+            continue
+        if tokens[i] not in valid_opts:
+            return False
+        i += 1
+    return True
+
+def validTiming(set_timing):
+    valid_timings = [
+        "-T0", "-T1", "-T2",
+        "-T3", "-T4", "-T5"
+    ]
     
+    # Reject if input contains spaces (multiple timings)
+    if " " in set_timing:
+        return False
+    return set_timing in valid_timings
+
+def validFragmentation(set_frag):
+    valid_frags = ["-f", "-ff"]
+    return set_frag in valid_frags
+
+def validGeneralOpts(gen_opts):
+    valid_opts = [
+        "-sV", "-O", "-6", "-A",
+        "-sn", "-Pn", "-PS", "-PA",
+        "-PU", "-PY", "-PE", "-PP",
+        "-PM", "-F", "-r"
+    ]
+
+    for opt in gen_opts.split():
+        if opt not in valid_opts:
+            return False
+    return True
+
 def IPscanOpts():
     get_IP = input("\nWhat is the host to scan? (IP ADDR) ")
     if not validIP(get_IP):
@@ -70,15 +117,30 @@ def IPscanOpts():
         sys.exit(1)
 
     get_Timing = input("\nWhat timing (-T0 -> -T5)? ")
-
+    if get_Timing and not validTiming(get_Timing):
+        print("Improper timing option.")
+        sys.exit(1)
+    
     get_ScanOpt = input("\nWhat Scan Option? (-sU, -sX, etc) ")
+    if get_ScanOpt and not validScanOpts(get_ScanOpt):
+        print("Improper scan option.")
+        sys.exit(1)
     if "-sI" in get_ScanOpt:
         get_Zombie = input("\nWhat zombie IP? ").strip()
+        if not validIP(get_Zombie):
+            print("Improper zombie IP address.")
+            sys.exit(1)
         get_ScanOpt = get_ScanOpt.replace("-sI", f"-sI {get_Zombie}")
 
     # General Options
     get_If_Frag = input("\n Fragmented? (-f / -ff) ")
+    if get_If_Frag and not validFragmentation(get_If_Frag):
+        print("Improper fragmentation option.")
+        sys.exit(1)
     get_Gen_Opts = input("\n General options? (-sV, -A, -O) ")
+    if get_Gen_Opts and not validGeneralOpts(get_Gen_Opts):
+        print("Improper general options.")
+        sys.exit(1)
 
     scan_Host(get_IP, get_Timing, get_ScanOpt, get_If_Frag, get_Gen_Opts)
 
@@ -120,15 +182,26 @@ def CIDRscanOpts():
         sys.exit(1)
 
     get_Timing = input("\nWhat timing (-T0 -> -T5)? ").strip()
-
+    if get_Timing and not validTiming(get_Timing):
+        print("Improper timing option.")
+        sys.exit(1)
     get_ScanOpt = input("\nWhat Scan Option? (-sS, -sU, etc) ").strip()
-
+    if get_ScanOpt and not validScanOpts(get_ScanOpt):
+        print("Improper scan option.")
+        sys.exit(1)
     if "-sI" in get_ScanOpt:
         get_Zombie = input("\nWhat zombie IP? ").strip()
         get_ScanOpt = get_ScanOpt.replace("-sI", f"-sI {get_Zombie}")
 
     get_If_Frag = input("\nFragmented? (-f / -ff) ").strip()
+    if get_If_Frag and not validFragmentation(get_If_Frag):
+        print("Improper fragmentation option.")
+        sys.exit(1)
+
     get_Gen_Opts = input("\nGeneral options? (-sV, -A, -O) ").strip()
+    if get_Gen_Opts and not validGeneralOpts(get_Gen_Opts):
+        print("Improper general options.")
+        sys.exit(1)
 
     scan_CIDR(get_CIDR, get_Timing, get_ScanOpt, get_If_Frag, get_Gen_Opts)
 
@@ -165,10 +238,11 @@ def scan_CIDR(CIDR, Time, ScanOpts, GetFrag, GenOpts):
                     f"Service: {service}"
                 )
 
-                up_hosts = [h for h in scan.all_hosts() if scan[h].state() == "up"]
+    up_hosts = [h for h in scan.all_hosts() if scan[h].state() == "up"]
 
-                print(f"\n[Bold]Scan Summary:[/Bold]")
-                print(f"Hosts up: {len(up_hosts)}")
-                print(f"Hosts scanned: {len(scan.all_hosts())}")
+    print(f"\nScan Summary:")
+    print(f"Hosts up: {len(up_hosts)}")
+    print(f"Hosts scanned: {len(scan.all_hosts())}")
                 
-main()
+if __name__ == "__main__":
+    main()
