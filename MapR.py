@@ -1,6 +1,7 @@
 import os
 import sys
 import nmap
+import ipaddress
 import pyfiglet
 
 scan = nmap.PortScanner()
@@ -44,9 +45,23 @@ def Opts1(choice):
         print("Exiting...")
         sys.exit(1)
 
+def validIP(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+def validCIDR(cidr):
+    try:
+        ipaddress.ip_network(cidr, strict=False)
+        return True
+    except ValueError:
+        return False
+    
 def IPscanOpts():
     get_IP = input("\nWhat is the host to scan? (IP ADDR) ")
-    if len(get_IP) > 15 or len(get_IP) < 7:
+    if not validIP(get_IP):
         print("Improper IP address.")
         sys.exit(1)
 
@@ -75,7 +90,7 @@ def scan_Host(IP, Time, ScanOpts, GetFrag, GenOpts):
     scan.scan(Target, arguments=options)
 
     for host in scan.all_hosts():
-        print(f"Host: {host} ({scan[host].hostname()})")
+        print(f"Host: {host}")
         print(f"State: {scan[host].state()}")
 
         for pro in scan[host].all_protocols():
@@ -96,6 +111,9 @@ def scan_Host(IP, Time, ScanOpts, GetFrag, GenOpts):
 
 def CIDRscanOpts():
     get_CIDR = input("\nWhat is the CIDR to scan? (e.g. 10.10.10.0/24) ").strip()
+    if not validCIDR(get_CIDR):
+        print("Improper CIDR notation.")
+        sys.exit(1)
 
     get_Timing = input("\nWhat timing (-T0 -> -T5)? ").strip()
 
@@ -124,7 +142,7 @@ def scan_CIDR(CIDR, Time, ScanOpts, GetFrag, GenOpts):
         if scan[host].state() != "up":
             continue  # Skip down hosts
 
-        print(f"\nHost: {host} ({scan[host].hostname()})")
+        print(f"\nHost: {host}")
         print(f"State: {scan[host].state()}")
 
         for pro in scan[host].all_protocols():
@@ -142,4 +160,11 @@ def scan_CIDR(CIDR, Time, ScanOpts, GetFrag, GenOpts):
                     f"State: {state['state']}\t"
                     f"Service: {service}"
                 )
+
+                up_hosts = [h for h in scan.all_hosts() if scan[h].state() == "up"]
+
+                print(f"\n[Bold]Scan Summary:[/Bold]")
+                print(f"Hosts up: {len(up_hosts)}")
+                print(f"Hosts scanned: {len(scan.all_hosts())}")
+                
 main()
