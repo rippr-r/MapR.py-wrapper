@@ -150,7 +150,7 @@ The author assumes **no liability** for misuse.
 
 - Output export (JSON / CSV) 
 - `--open` filtering
-- Improved option validation
+- Improved option validation ✅
 - Colorized output 
 - Script scan integration
 
