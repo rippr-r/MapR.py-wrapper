@@ -26,9 +26,13 @@ def main():
     for choice in choices:
         print(choice)
     
-    Options = int(input("\nWhat would you like to do? "))
-    if Options < 1 or Options > 3:
-        print("Invalid choice, try again.")
+    try:
+        Options = int(input("\nWhat would you like to do? "))
+        if Options < 1 or Options > 3:
+            print("Invalid choice, try again.")
+            sys.exit(1)
+    except ValueError:
+        print("Please enter a number between 1 and 3.")
         sys.exit(1)
 
     Opts1(Options)
