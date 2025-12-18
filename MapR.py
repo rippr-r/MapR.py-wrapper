@@ -29,7 +29,7 @@ def main():
     try:
         Options = int(input("\nWhat would you like to do? "))
         if Options < 1 or Options > 3:
-            print("Invalid choice, try again.")
+            print("Please enter a number between 1 and 3.")
             sys.exit(1)
     except ValueError:
         print("Please enter a number between 1 and 3.")
@@ -47,7 +47,7 @@ def Opts1(choice):
         CIDRscanOpts()
     else:
         print("Exiting...")
-        sys.exit(1)
+        sys.exit(0)
 
 def validIP(ip):
     try:
